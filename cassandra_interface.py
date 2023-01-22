@@ -1,5 +1,4 @@
 import pandas as pd
-import cassandra
 from cassandra.cluster import Cluster
 import re
 import os
