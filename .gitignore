@@ -130,3 +130,6 @@ dmypy.json
 
 # debugging config
 launch.json
+
+# DS Store
+.DS_Store
