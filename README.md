@@ -63,7 +63,7 @@ In our Python logic, we'll set the keyspace.
 ### Data modelling
 In Cassandra, we need to model our data for the queries we want to run. 
 
-#### Inserting the data
+#### Inserting the data
 In the upcoming queries, we'll use the Python driver to open our new master file and insert it into a Cassandra table. We'll create the table and then we'll open our file with `csv.DictReader`. I've made the column order more logical than in the source csv.
 
 Once we load the data, we can see it show up in DBeaver!
@@ -82,9 +82,9 @@ select
 from 
     sparkify.sessions 
 where 
-    session_id=338 
+    session_id = 338 
 and 
-    item_in_session=4
+    item_in_session = 4
 ```
 
 In this case, we can set session ID and item in session as a composite primary key, either by setting them jointly as the partition key or one as the partition key and the other as a clustering column. 
@@ -97,7 +97,8 @@ create table if not exists sparkify.item_in_session
     user_id int,
     ...
     length float,
-    PRIMARY KEY ((session_id), item_in_session))
+    PRIMARY KEY ((session_id), item_in_session)
+)
 ```
 
 Let's now run our query...
@@ -107,13 +108,30 @@ Let's now run our query...
 Success!
 
 #### Query 2
+The second query is to find the name of artist and song (sorted by item in session ID) and user (first and last name) for user ID 10 and session ID 182.
+
+Here, we need to create a new table. We'll set user ID and session ID as the partition key and item in session as the clustering column. I'm choosing item in session as the clustering column because it determines how the data is sorted on disk, so it will be very quick to run a query which sorts by that column. 
+
+I'll run the below DDL: 
+
+```
+create table if not exists sparkify.artist_song_user
+(
+    user_id int,
+    ...
+    length float,
+    PRIMARY KEY ((user_id, session_id), item_in_session)
+)
+```
+Then we will run the below query:
+
 ```
 select
     artist,
     song,
     user
 from 
-    sparkify.sessions
+    sparkify.artist_song_user
 where
     user_id = 10
 and
@@ -127,4 +145,42 @@ Let's run it ...
 Success!
 
 #### Query 3
+The third query looks for every user name (first and last) who listened to the song 'All Hands Against His Own'. 
+
+We'll want to run a query like this:
+
+```
+select
+    first_name,
+    last_name
+from 
+    sparkify.song_filter
+where
+    song = 'All Hands Against His Own'
+```
+
+We'll definitely want the song to be part of the primary key. 
+
+Moreover, we'll need first name, last name, and user ID to finish the primary key. (Names by themselves are not a reliable primary key.) 
+
+We'll run:
+
+```
+create table if not exists sparkify.song_filter
+(
+    user_id int,
+    ...
+    length float,
+    PRIMARY KEY ((song), first_name, last_name, user_id)
+)
+```
+
+Let's run the query...
+
+![Alt text](/images/query_3.png?raw=true)
+
+Success!
+
+---
+
 [1] Note: As an extra bit of functionality, I\'ve connected to Cassandra via DBeaver. This is a nicer interface than relying on the Python driver or using `cqlsh` via the command line. (To do this, you first need to configure the Cassandra driver in DBeaver by downloading the appropriate .jar file.)
