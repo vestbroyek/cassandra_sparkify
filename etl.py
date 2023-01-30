@@ -1,9 +1,5 @@
-import pandas as pd
-import re
 import os
 import glob
-import numpy as np
-import json
 import csv
 
 def run_etl():
