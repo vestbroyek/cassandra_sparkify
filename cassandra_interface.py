@@ -1,4 +1,5 @@
 from cassandra.cluster import Cluster
+from cassandra.policies import RoundRobinPolicy
 import logging
 logging.basicConfig(level=logging.INFO)
 
@@ -6,12 +7,15 @@ class Cassandra:
 	def __init__(self, host='127.0.0.1', port=9042):
 		self.host=host
 		self.port=port
-		self.cluster=Cluster([self.host], self.port)
+		self.cluster=Cluster(
+			[self.host], 
+			self.port, 
+			load_balancing_policy=RoundRobinPolicy()
+		)
 
 	def connect(self):
 		try:
 			self.session=self.cluster.connect()
-			return self.session
 		except:
 			logging.error("Could not connect to cluster.")
 			raise
@@ -30,3 +34,4 @@ class Cassandra:
 
 	def shutdown(self):
 		self.session.shutdown()
+		self.cluster.shutdown()
