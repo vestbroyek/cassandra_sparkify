@@ -1,5 +1,7 @@
 from cassandra_interface import Cassandra
 import csv
+import logging
+logging.basicConfig(level=logging.INFO)
 
 def insert_data(session, table_name):
     # insert data 
@@ -16,6 +18,7 @@ def insert_data(session, table_name):
         # because I'm reordering columns)
         csvreader = csv.DictReader(f)
         next(csvreader) # skip header
+        logging.info(f'Inserting data into {table_name}...')
         for line in csvreader:
             session.execute(
                 insert_query,
@@ -24,5 +27,3 @@ def insert_data(session, table_name):
                     line['firstName'], line['lastName'], line['gender'], line['location'], line['level'],
                     line['song'], line['artist'], float(line['length'])
                 ))
-
-    session.shutdown()
